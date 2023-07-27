@@ -2,13 +2,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { Browser } from 'puppeteer-core';
 import { writeFileSync } from 'fs';
-
-const searchTerm = 'yazilim+firmalari';
-const latitude = '39';
-const longitude = '32';
+import prompt from './prompts';
+import { IPlace } from './types';
 
 async function run() {
   try {
+    const [searchTerm, latitude, longitude] = await prompt();
+    console.log(searchTerm, latitude, longitude);
+
     const { default: Browser } = await import(`./browsers/${process.env.BROWSER_TYPE}`); 
     const browser: Browser = await Browser();
 
@@ -18,7 +19,7 @@ async function run() {
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(2 * 60 * 1000);
 
-    await page.setGeolocation({latitude: 39, longitude: 32});
+    await page.setGeolocation({latitude: parseInt(latitude), longitude: parseInt(longitude)});
 
     /*
     const client = await page.target().createCDPSession();
@@ -37,28 +38,28 @@ async function run() {
     await page.waitForSelector(selector);
 
     const data = await page.evaluate(() => {
-      const firms: any[] = [];
-      const firmsWithAdress = document.querySelectorAll('.Q2HXcd');
-      const firmsWithAdressAndWebsite = document.querySelectorAll('.tH5CWc');
+      const locations: IPlace[] = [];
+      const locationsWithAdress = document.querySelectorAll('.Q2HXcd');
+      const locationsWithAdressAndWebsite = document.querySelectorAll('.tH5CWc');
 
-      if (firmsWithAdress.length !== 0) {
-        firmsWithAdress.forEach(element => {
-          firms.push({
-            name: element.querySelector('.qBF1Pd')?.textContent,
+      if (locationsWithAdress.length !== 0) {
+        locationsWithAdress.forEach(element => {
+          locations.push({
+            name: element.querySelector('.qBF1Pd')?.textContent as string,
           });
         });
       }
 
-      if (firmsWithAdressAndWebsite.length !== 0) {
-        firmsWithAdressAndWebsite.forEach(element => {
-          firms.push({
-            name: element.querySelector('.qBF1Pd')?.textContent,
-            website: element.querySelector('.lcr4fd')?.href,
+      if (locationsWithAdressAndWebsite.length !== 0) {
+        locationsWithAdressAndWebsite.forEach(element => {
+          locations.push({
+            name: element.querySelector('.qBF1Pd')?.textContent as string,
+            website: element.querySelector('.lcr4fd')?.href as string,
           });
         });
       }
 
-      return firms;
+      return locations;
     });
 
     await browser.close();
