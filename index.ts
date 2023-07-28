@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { Browser } from 'puppeteer-core';
+import { Browser, Page } from 'puppeteer-core';
 import { writeFileSync } from 'fs';
 import prompt from './prompts';
 import { IPlace } from './types';
@@ -34,10 +34,12 @@ async function run() {
     await page.goto(`https://www.google.com/maps/search/${searchTerm}/@${latitude},${longitude}`);
    
     const selector = '.qBF1Pd';
-
+    //wait for elements to render
     await page.waitForSelector(selector);
 
-    const data = await page.evaluate(() => {
+    await waitForCondition(page, 20);
+
+    const data = await page.evaluate(async () => {
       const locations: IPlace[] = [];
       const locationsWithAdress = document.querySelectorAll('.Q2HXcd');
       const locationsWithAdressAndWebsite = document.querySelectorAll('.tH5CWc');
@@ -76,3 +78,20 @@ async function run() {
 }
 
 run();
+
+//Scrolls down the component until the number of the places equal to the argument named limit
+async function waitForCondition(page: Page, limit: number) {
+  let itemCount: number = 0;
+  await page.hover('[role=\'feed\']');
+
+  //focus on the list of places
+  await page.focus('[role=\'feed\']');
+
+  await page.keyboard.down('ArrowDown');
+  await page.waitForSelector('.QjC7t');
+
+  do {
+    await page.keyboard.down('ArrowDown');
+    itemCount = await page.evaluate(() => document.querySelector('.QjC7t')?.children.length) as number;
+  } while ((limit * 2) > itemCount);
+}
