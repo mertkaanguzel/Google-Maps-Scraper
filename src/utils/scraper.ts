@@ -1,14 +1,16 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config();
-import { Browser, Page } from "puppeteer-core";
-import { writeFileSync } from "fs";
-import prompt from "./prompts";
-import { IPlace } from "./types";
+import { Browser, Page } from 'puppeteer-core';
 
-async function run() {
+interface IPlace {
+  name: string;
+  website?: string;
+}
+
+export async function scrape(searchTerm: string, latitude: string, longitude: string) {
   try {
-    const [searchTerm, latitude, longitude] = await prompt();
-    console.log(searchTerm, latitude, longitude);
+    //const [searchTerm, latitude, longitude] = await prompt();
+    //console.log(searchTerm, latitude, longitude);
 
     const { default: Browser } = await import(
       `./browsers/${process.env.BROWSER_TYPE}`
@@ -40,7 +42,7 @@ async function run() {
       `https://www.google.com/maps/search/${searchTerm}/@${latitude},${longitude}`
     );
 
-    const selector = ".qBF1Pd";
+    const selector = '.qBF1Pd';
     //wait for elements to render
     await page.waitForSelector(selector);
 
@@ -48,14 +50,14 @@ async function run() {
 
     const data = await page.evaluate(async () => {
       const locations: IPlace[] = [];
-      const locationsWithAdress = document.querySelectorAll(".Q2HXcd");
+      const locationsWithAdress = document.querySelectorAll('.Q2HXcd');
       const locationsWithAdressAndWebsite =
-        document.querySelectorAll(".tH5CWc");
+        document.querySelectorAll('.tH5CWc');
 
       if (locationsWithAdress.length !== 0) {
         locationsWithAdress.forEach((element) => {
           locations.push({
-            name: element.querySelector(".qBF1Pd")?.textContent as string,
+            name: element.querySelector('.qBF1Pd')?.textContent as string,
           });
         });
       }
@@ -63,8 +65,8 @@ async function run() {
       if (locationsWithAdressAndWebsite.length !== 0) {
         locationsWithAdressAndWebsite.forEach((element) => {
           locations.push({
-            name: element.querySelector(".qBF1Pd")?.textContent as string,
-            website: (element.querySelector(".lcr4fd") as HTMLAnchorElement)
+            name: element.querySelector('.qBF1Pd')?.textContent as string,
+            website: (element.querySelector('.lcr4fd') as HTMLAnchorElement)
               .href as string,
           });
         });
@@ -75,33 +77,32 @@ async function run() {
 
     await browser.close();
 
-    console.log(data);
-    writeFileSync("./output.txt", JSON.stringify(data));
-    writeFileSync("./output.json", JSON.stringify(data));
+    //console.log(data);
+    return data;
   } catch (error) {
-    console.error("Scraping failed", error);
+    console.error('Scraping failed', error);
+    throw new Error(error);
   } finally {
-    console.log("DONE!");
+    console.log('DONE!');
   }
 }
-
-run();
 
 //Scrolls down the component until the number of the places equal to the argument named limit
 async function waitForCondition(page: Page, limit: number) {
   let itemCount: number = 0;
-  await page.hover("[role='feed']");
+  await page.hover('[role=\'feed\']');
 
   //focus on the list of places
-  await page.focus("[role='feed']");
+  await page.focus('[role=\'feed\']');
 
-  await page.keyboard.down("ArrowDown");
-  await page.waitForSelector(".QjC7t");
+  await page.keyboard.down('ArrowDown');
+  await page.waitForSelector('.QjC7t');
 
   do {
-    await page.keyboard.down("ArrowDown");
+    await page.keyboard.down('ArrowDown');
     itemCount = (await page.evaluate(
-      () => document.querySelector(".QjC7t")?.children.length
+      () => document.querySelector('.QjC7t')?.children.length
     )) as number;
   } while (limit * 2 > itemCount);
 }
+
