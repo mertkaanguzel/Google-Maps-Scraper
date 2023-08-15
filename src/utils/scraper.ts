@@ -1,16 +1,18 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import { Browser, Page } from 'puppeteer-core';
+import { createJobsInput } from '../job/job.dtos';
+import { IJob } from '../job/job.types';
 
-interface IPlace {
+type IPlace = {
   name: string;
   website?: string;
 }
 
-export async function scrape(searchTerm: string, latitude: string, longitude: string) {
+
+export async function scrape(args: createJobsInput) {
   try {
-    //const [searchTerm, latitude, longitude] = await prompt();
-    //console.log(searchTerm, latitude, longitude);
+    const {latitude, longitude, limit, term} = args;
 
     const { default: Browser } = await import(
       `./browsers/${process.env.BROWSER_TYPE}`
@@ -39,16 +41,16 @@ export async function scrape(searchTerm: string, latitude: string, longitude: st
     */
 
     await page.goto(
-      `https://www.google.com/maps/search/${searchTerm}/@${latitude},${longitude}`
+      `https://www.google.com/maps/search/${term}/@${latitude},${longitude}`
     );
 
     const selector = '.qBF1Pd';
     //wait for elements to render
     await page.waitForSelector(selector);
 
-    await waitForCondition(page, 20);
+    await waitForCondition(page, limit);
 
-    const data = await page.evaluate(async () => {
+    const locations = await page.evaluate(async () => {
       const locations: IPlace[] = [];
       const locationsWithAdress = document.querySelectorAll('.Q2HXcd');
       const locationsWithAdressAndWebsite =
@@ -77,7 +79,13 @@ export async function scrape(searchTerm: string, latitude: string, longitude: st
 
     await browser.close();
 
-    //console.log(data);
+    const data: IJob[] = locations.map((location) => {
+      return {
+        ...location,
+        location: {latitude, longitude},
+      };
+    });
+
     return data;
   } catch (error) {
     console.error('Scraping failed', error);

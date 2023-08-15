@@ -1,22 +1,7 @@
 import { Schema, model } from 'mongoose';
+import { IJob } from './job.types';
 
-interface ILocation {
-  latitude: string;
-  longitude: string;
-}
 
-interface IJob {
-  name: string;
-  location: ILocation;
-  city?: string;
-  website?: string;
-}
-/*
-interface JobDocument extends IJob, Document {
-  createdAt: Date;
-  updatedAt: Date;
-}
-*/
 const jobSchema = new Schema<IJob>({
   name: { type: String, required: true },
   location: {
