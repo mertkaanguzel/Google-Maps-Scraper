@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response, Router } from 'express';
+import { validateInput } from '../utils/common.middleware';
+import { createJobsDto } from './job.dtos';
 import { findAll, scrapeAndSaveJobs } from './job.service';
 
 export const jobRouter = Router();
 
-jobRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
+jobRouter.post('/', validateInput(createJobsDto, 'body'), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log(req.body);
     const jobs = await scrapeAndSaveJobs(req.body);
     res.send(jobs);
   } catch (error) {

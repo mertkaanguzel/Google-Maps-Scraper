@@ -22,6 +22,7 @@ const JobSchema = z.object({
   location: z.object({
     ..._location,
   }),
-});
+})
+  .strict();
 
 export type IJob = z.infer<typeof JobSchema>;

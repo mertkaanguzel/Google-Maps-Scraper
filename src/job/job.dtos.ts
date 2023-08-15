@@ -2,17 +2,11 @@
 import { z } from 'zod';
 import { _location } from './job.types';
 
-const _createJobsDto = z.object({
+export const createJobsDto = z.object({
   ..._location,
   limit: z.number(),
   term: z.string(),
-});
-
-export const createJobsDto = z.object({
-  body: _createJobsDto,
 })
   .strict();
 
-
-
-export type createJobsInput = z.infer<typeof _createJobsDto>;
+export type createJobsInput = z.infer<typeof createJobsDto>;

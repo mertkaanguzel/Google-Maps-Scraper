@@ -4,12 +4,6 @@ import { Browser, Page } from 'puppeteer-core';
 import { createJobsInput } from '../job/job.dtos';
 import { IJob } from '../job/job.types';
 
-type IPlace = {
-  name: string;
-  website?: string;
-}
-
-
 export async function scrape(args: createJobsInput) {
   try {
     const {latitude, longitude, limit, term} = args;
@@ -51,7 +45,7 @@ export async function scrape(args: createJobsInput) {
     await waitForCondition(page, limit);
 
     const locations = await page.evaluate(async () => {
-      const locations: IPlace[] = [];
+      const locations: Partial<IJob>[] = [];
       const locationsWithAdress = document.querySelectorAll('.Q2HXcd');
       const locationsWithAdressAndWebsite =
         document.querySelectorAll('.tH5CWc');
@@ -82,6 +76,7 @@ export async function scrape(args: createJobsInput) {
     const data: IJob[] = locations.map((location) => {
       return {
         ...location,
+        name: location.name as string,
         location: {latitude, longitude},
       };
     });
