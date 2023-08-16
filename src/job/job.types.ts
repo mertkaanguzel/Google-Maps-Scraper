@@ -17,7 +17,7 @@ const _job = {
   website: z.string().url().optional(),
 };
 
-const JobSchema = z.object({
+export const job = z.object({
   ..._job,
   location: z.object({
     ..._location,
@@ -25,4 +25,4 @@ const JobSchema = z.object({
 })
   .strict();
 
-export type IJob = z.infer<typeof JobSchema>;
+export type IJob = z.infer<typeof job>;

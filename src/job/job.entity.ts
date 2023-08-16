@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 import { IJob } from './job.types';
 
 
-const jobSchema = new Schema<IJob>({
+export const jobSchema = new Schema<IJob>({
   name: { type: String, required: true },
   location: {
     latitude: { type: String, required: true },
