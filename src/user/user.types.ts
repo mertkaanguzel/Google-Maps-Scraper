@@ -5,12 +5,6 @@ const _user = {
   email: z.string({
     required_error: 'email required'
   }).email(),
-  firstName: z.string({
-    required_error: 'firstName required'
-  }),
-  lastName: z.string({
-    required_error: 'lastName required'
-  }),
 };
 
 const _resume = {
@@ -40,17 +34,28 @@ const experience = z.object({
   ..._experience,
 });
 
+const resume = z.object({
+  ..._resume,
+  certificates: z.lazy(() => certificate.array()),
+  experiences: z.lazy(() => experience.array()),
+});
+
 const user = z.object({
   ..._user,
-  resume: z.object({
-    ..._resume,
-    certificates: z.lazy(() => certificate.array()),
-    experiences: z.lazy(() => experience.array()),
-  }),
+  firstName: z.string(),
+  lastName: z.string(),
+  resume: resume,
   companies: z.lazy(() => job.array()),
 });
 
+type ICertificate = z.infer<typeof certificate>;
 
-export type IUser = z.infer<typeof user>;
+type IExperience = z.infer<typeof experience>;
+
+type IResume = z.infer<typeof resume>;
+
+type IUser = z.infer<typeof user>;
+
+export { ICertificate, IExperience, IResume, IUser, _user };
 
 

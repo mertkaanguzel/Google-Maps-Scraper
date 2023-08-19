@@ -23,7 +23,7 @@ const validateInput = (schema: AnyZodObject, source: string) => (req: Request, r
 function errorHandler(error: any, req: Request, res: Response, next: NextFunction) {
   const status = error.status || 500;
   res.status(status).send({
-    error: JSON.parse(error.message),
+    error: error.message,
   });
 }
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const _location = {
+const _location = {
   latitude: z.string({
     required_error: 'latitude required'
   }),
@@ -17,7 +17,7 @@ const _job = {
   website: z.string().url().optional(),
 };
 
-export const job = z.object({
+const job = z.object({
   ..._job,
   location: z.object({
     ..._location,
@@ -25,4 +25,6 @@ export const job = z.object({
 })
   .strict();
 
-export type IJob = z.infer<typeof job>;
+type IJob = z.infer<typeof job>;
+
+export {  _location, job, IJob };
