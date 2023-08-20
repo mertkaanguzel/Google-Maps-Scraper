@@ -10,11 +10,15 @@ async function createUser(args: createUserInput) {
 }
 
 async function findUser(id: string) {
-  return await userModel.findById(id).exec();
+  const user = await userModel.findById(id).exec();
+  if (!user) throw new Error('User not found');
+  return user;
 }
 
 async function findUserByEmail(email: string) {
-  return await userModel.findOne({ email }).exec();
+  const user = await userModel.findOne({ email }).exec();
+  if (!user) throw new Error('User not found');
+  return user;
 }
 
 

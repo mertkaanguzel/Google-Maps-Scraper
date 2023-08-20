@@ -24,8 +24,8 @@ const resumeSchema = new Schema<IResume>({
 
 const userSchema = new Schema<IUser>({
   email: { type: String, required: true },
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+  firstName: { type: String },
+  lastName: { type: String },
   companies: [jobSchema],
   resume: resumeSchema,
 });

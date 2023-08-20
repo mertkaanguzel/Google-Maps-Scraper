@@ -3,18 +3,57 @@ import dotenv from 'dotenv';
 dotenv.config();
 //import { createTransport } from 'nodemailer';
 import { createUserInput } from '../user/user.dtos';
-import { createUser, findUserByEmail } from '../user/user.service';
+import { createUser, findUser, findUserByEmail } from '../user/user.service';
 import passport from 'passport';
 import { createTransport } from 'nodemailer';
+import { HydratedDocument } from 'mongoose';
+import session from 'express-session';
+import { NextFunction, Request, Response } from 'express';
 
-export const magicLogin = new MagicLoginStrategy({
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    type IUser = import('../user/user.types').IUser;
+    interface User extends HydratedDocument<IUser> {}
+  }
+}
+
+const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (req.isAuthenticated()) {
+      next();
+    }
+    else {
+      throw new Error('Not authenticated');
+    }
+  } catch (error) {
+    error.status = 401;
+    next(error);
+  }
+};
+
+const sessionMiddleware = session({
+  //store: redisStore,
+  saveUninitialized: false,
+  secret: process.env.SESSION_SECRET as string,
+  resave: false,
+  name: 'sessionId',
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 1000 * 60 * 30,
+  },
+});
+
+const magicLogin = new MagicLoginStrategy({
   secret: process.env.MAGIC_LINK_SECRET as string,
   callbackUrl: '/api/auth/login/callback',
   sendMagicLink: async (email: string, href: string) => {
     await sendMail(email, href);
   },
   verify: async (payload, callback) => {
-    callback(null, validate(payload));
+    callback(null, await validate(payload));
   },
   jwtOptions: {
     expiresIn: '5m',
@@ -50,4 +89,12 @@ async function validate(payload: createUserInput) {
   return user;
 }
 
-passport.use('magiclogin' ,magicLogin);
+passport.use('magiclogin', magicLogin);
+
+passport.deserializeUser((id: string, done) => { 
+  findUser(id).then(user => done(null, user));
+});
+
+passport.serializeUser((user, done) => done(null, user.id));
+
+export { isAuthenticated, sessionMiddleware, magicLogin  };
